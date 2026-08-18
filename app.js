@@ -87,36 +87,62 @@ bottomBook?.addEventListener('click', () => {
    UPI DEEP LINK — Build URL
 ═══════════════════════════════ */
 let paymentConfirmed = false;   // tracks "I Have Completed Payment" tap
-let currentDeposit   = 0;       // current entered deposit amount
-let currentBalance   = 0;       // current entered final balance amount
+let currentDeposit   = 0;       // current calculated deposit amount
 
-function buildUpiUrl(amount) {
+function buildUpiUrl(depositAmount) {
   const name = encodeURIComponent(CONFIG.artistName);
-  return `upi://pay?pa=${CONFIG.upiId}&pn=${name}&am=${amount}&cu=INR`;
+  return `upi://pay?pa=${CONFIG.upiId}&pn=${name}&am=${depositAmount}&cu=INR`;
+}
+
+function updateUpiDeepLink(deposit) {
+  const upiPayBtn     = $('upi-pay-btn');
+  const upiPayBtnText = $('upi-pay-btn-text');
+  const upiQrLink     = $('upi-qr-link');
+  const deepSection   = $('upi-deeplink-section');
+
+  if (!upiPayBtn) return;
+
+  if (deposit > 0) {
+    const upiUrl = buildUpiUrl(deposit);
+    upiPayBtn.href    = upiUrl;
+    upiQrLink.href    = upiUrl;
+    if (upiPayBtnText) upiPayBtnText.textContent = `Open UPI App to Pay ₹${deposit.toLocaleString('en-IN')}`;
+    if (deepSection)  deepSection.classList.add('active');
+  } else {
+    upiPayBtn.href    = '#';
+    upiQrLink.href    = '#';
+    if (upiPayBtnText) upiPayBtnText.textContent = `Open UPI App to Pay ₹—`;
+    if (deepSection)  deepSection.classList.remove('active');
+  }
 }
 
 /* ═══════════════════════════════
-   DEPOSIT AMOUNT
+   DEPOSIT CALCULATOR
 ═══════════════════════════════ */
 amountInput?.addEventListener('input', () => {
   const val = parseFloat(amountInput.value);
+  const totalDisplay   = $('total-amount-display');
+  const balanceDisplay = $('balance-amount-display');
+
   if (val && val >= 1) {
-    currentDeposit = val;
+    const deposit = Math.ceil(val * 0.30);
+    const balance = val - deposit;
+    currentDeposit = deposit;
+
+    // Update three-row breakdown
+    if (totalDisplay)   totalDisplay.textContent   = '₹ ' + val.toLocaleString('en-IN');
+    depositAmt.textContent                         = '₹ ' + deposit.toLocaleString('en-IN');
+    if (balanceDisplay) balanceDisplay.textContent = '₹ ' + balance.toLocaleString('en-IN');
+
+    depositDisp.classList.add('visible');
+    updateUpiDeepLink(deposit);
   } else {
     currentDeposit = 0;
-  }
-});
-
-/* ═══════════════════════════════
-   FINAL BALANCE AMOUNT
-═══════════════════════════════ */
-const finalAmountInput = $('final-project-amount');
-finalAmountInput?.addEventListener('input', () => {
-  const val = parseFloat(finalAmountInput.value);
-  if (val && val >= 1) {
-    currentBalance = val;
-  } else {
-    currentBalance = 0;
+    if (totalDisplay)   totalDisplay.textContent   = '₹ —';
+    depositAmt.textContent                         = '₹ —';
+    if (balanceDisplay) balanceDisplay.textContent = '₹ —';
+    depositDisp.classList.remove('visible');
+    updateUpiDeepLink(0);
   }
 });
 
@@ -317,7 +343,7 @@ form?.addEventListener('submit', async (e) => {
   const phone   = $('client-phone')?.value.trim() || '';
   const email   = $('client-email')?.value.trim() || '';
   const amount  = parseFloat($('project-amount')?.value) || 0;
-  const deposit = amount; // Since the field is now 'Enter 30% Deposit Amount' directly
+  const deposit = Math.ceil(amount * 0.30);
   const agreed  = $('terms-agree')?.checked;
 
   // Validation
@@ -326,7 +352,7 @@ form?.addEventListener('submit', async (e) => {
   else if (!phone)      { showToast('⚠️ Please enter your WhatsApp number'); valid = false; }
   else if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
                         { showToast('⚠️ Please enter a valid email'); valid = false; }
-  else if (deposit <= 0){ showToast('⚠️ Please enter a valid deposit amount'); valid = false; }
+  else if (amount <= 0) { showToast('⚠️ Please enter a valid project amount'); valid = false; }
   else if (!agreed)     { showToast('⚠️ Please agree to the terms'); valid = false; }
   else if (!paymentConfirmed)
                         { showToast('⚠️ Please complete UPI payment and tap "I Have Completed Payment"'); valid = false; }
@@ -339,7 +365,7 @@ form?.addEventListener('submit', async (e) => {
 
   const payload = {
     name, phone, email,
-    project_amount:  'Not Applicable',
+    project_amount:  amount,
     deposit_amount:  deposit,
     deposit_utr:     depositUtr,
     upi_id:          CONFIG.upiId,
