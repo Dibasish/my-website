@@ -491,8 +491,9 @@ function buildReelsGrid() {
     card.target = '_blank';
     card.rel = 'noopener noreferrer';
     card.setAttribute('aria-label', `Watch ${title} on Instagram`);
-
+    
     card.innerHTML = `
+      <img src="https://www.instagram.com/p/${id}/media/?size=l" alt="Reel Cover" class="reel-img" loading="lazy" onerror="this.style.display='none'">
       <div class="reel-overlay-gradient"></div>
       
       <!-- Top right views -->
