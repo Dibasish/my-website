@@ -330,7 +330,7 @@ form?.addEventListener('submit', async (e) => {
   else if (!phone)      { showToast('⚠️ Please enter your WhatsApp number'); valid = false; }
   else if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
                         { showToast('⚠️ Please enter a valid email'); valid = false; }
-  else if (amount < 500){ showToast('⚠️ Minimum project amount is ₹500'); valid = false; }
+  else if (amount <= 0) { showToast('⚠️ Please enter a valid project amount'); valid = false; }
   else if (!agreed)     { showToast('⚠️ Please agree to the terms'); valid = false; }
   else if (!paymentConfirmed)
                         { showToast('⚠️ Please complete UPI payment and tap "I Have Completed Payment"'); valid = false; }
