@@ -91,8 +91,7 @@ let currentDeposit   = 0;       // current calculated deposit amount
 
 function buildUpiUrl(depositAmount) {
   const name = encodeURIComponent(CONFIG.artistName);
-  const note = encodeURIComponent('Song Commission Deposit');
-  return `upi://pay?pa=${CONFIG.upiId}&pn=${name}&am=${depositAmount}&cu=INR&tn=${note}`;
+  return `upi://pay?pa=${CONFIG.upiId}&pn=${name}&am=${depositAmount}&cu=INR`;
 }
 
 function updateUpiDeepLink(deposit) {
@@ -148,55 +147,57 @@ amountInput?.addEventListener('input', () => {
 });
 
 /* ═══════════════════════════════
-   UPI PAY BUTTON — show confirm immediately, then open app
-   NOTE: QR link click intentionally has NO confirm trigger
-   (QR is scan-only; only the explicit button triggers confirm)
+   UPI MODAL LOGIC
 ═══════════════════════════════ */
-$('upi-pay-btn')?.addEventListener('click', (e) => {
-  if (currentDeposit <= 0) {
-    e.preventDefault();
+let currentPaymentContext = null; // 'deposit' or 'final'
+const upiModal = $('upi-modal');
+const modalAmountDisplay = $('modal-amount-display');
+const modalLaunchBtn = $('modal-launch-btn');
+
+function openUpiModal(type, amount) {
+  if (amount <= 0) {
     showToast('⚠️ Enter your project amount first');
     return;
   }
-  // Show confirmation immediately before navigating to UPI app
-  const confirmSection = $('payment-confirm-section');
-  if (confirmSection) confirmSection.classList.add('visible');
+  currentPaymentContext = type;
+  if (modalAmountDisplay) modalAmountDisplay.textContent = '₹' + amount.toLocaleString('en-IN');
+  if (modalLaunchBtn) modalLaunchBtn.href = buildUpiUrl(amount);
+  
+  if (upiModal) upiModal.classList.add('active');
+}
+
+$('upi-modal-close')?.addEventListener('click', () => {
+  if (upiModal) upiModal.classList.remove('active');
 });
 
-// QR link on desktop does nothing extra; on mobile opens UPI app via href
-// No click event needed here — fixing the bug where clicking QR
-// incorrectly showed payment confirmation without actual payment.
-
-/* ═══════════════════════════════
-   "I HAVE COMPLETED PAYMENT" BUTTON — Deposit
-═══════════════════════════════ */
-$('payment-done-btn')?.addEventListener('click', () => {
-  paymentConfirmed = true;
-  $('payment-confirm-section')?.classList.remove('visible');
-  $('payment-confirmed-badge')?.classList.add('visible');
-  submitBtn?.classList.add('payment-ready');
-  showToast('✅ Payment confirmed! Fill the form and submit.');
+$('open-upi-modal-btn')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  openUpiModal('deposit', currentDeposit);
 });
 
-/* ═══════════════════════════════
-   FINAL PAYMENT CARD — Pay button & confirm
-═══════════════════════════════ */
-$('final-pay-btn')?.addEventListener('click', (e) => {
-  if (!currentBalance || currentBalance <= 0) { e.preventDefault(); return; }
-  $('final-confirm-section')?.classList.add('visible');
+$('open-final-upi-modal-btn')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  openUpiModal('final', currentBalance);
 });
 
-$('final-payment-done-btn')?.addEventListener('click', () => {
-  $('final-confirm-section')?.classList.remove('visible');
-  $('final-confirmed-badge')?.classList.add('visible');
-  // Enable final submit button
-  const finalBtn = $('final-submit-btn');
-  if (finalBtn) {
-    finalBtn.disabled = false;
-    finalBtn.classList.add('payment-ready');
+$('modal-payment-done-btn')?.addEventListener('click', () => {
+  if (upiModal) upiModal.classList.remove('active');
+  
+  if (currentPaymentContext === 'deposit') {
+    paymentConfirmed = true;
+    $('payment-confirmed-badge')?.classList.add('visible');
+    submitBtn?.classList.add('payment-ready');
+    showToast('✅ Payment confirmed! Fill the form and submit.');
+  } else if (currentPaymentContext === 'final') {
+    $('final-confirmed-badge')?.classList.add('visible');
+    const finalBtn = $('final-submit-btn');
+    if (finalBtn) {
+      finalBtn.disabled = false;
+      finalBtn.classList.add('payment-ready');
+    }
+    $('final-submit-hint')?.remove();
+    showToast('✅ Final payment confirmed! Submit to get your master files.');
   }
-  $('final-submit-hint')?.remove();
-  showToast('✅ Final payment confirmed! Submit to get your master files.');
 });
 
 $('final-submit-btn')?.addEventListener('click', async () => {
@@ -230,8 +231,12 @@ $('final-submit-btn')?.addEventListener('click', async () => {
 /* ═══════════════════════════════
    UPI ID COPY BUTTON
 ═══════════════════════════════ */
-copyBtn?.addEventListener('click', async () => {
-  const text = $('upi-id-text')?.textContent?.trim() || CONFIG.upiId;
+const modalCopyBtn = $('modal-copy-upi-btn');
+const modalCopyIcon = $('modal-copy-icon');
+const modalCopiedIcon = $('modal-copied-icon');
+
+modalCopyBtn?.addEventListener('click', async () => {
+  const text = $('modal-upi-id-text')?.textContent?.trim() || CONFIG.upiId;
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -245,18 +250,18 @@ copyBtn?.addEventListener('click', async () => {
     document.body.removeChild(ta);
   }
   // Show copied state
-  copyIcon.style.display    = 'none';
-  copiedIcon.style.display  = '';
-  copyBtn.style.color       = 'var(--success)';
-  copyBtn.style.background  = 'rgba(34,197,94,0.12)';
-  copyBtn.style.borderColor = 'rgba(34,197,94,0.25)';
+  if (modalCopyIcon) modalCopyIcon.style.display    = 'none';
+  if (modalCopiedIcon) modalCopiedIcon.style.display  = '';
+  modalCopyBtn.style.color       = 'var(--success)';
+  modalCopyBtn.style.background  = 'rgba(34,197,94,0.12)';
+  modalCopyBtn.style.borderColor = 'rgba(34,197,94,0.25)';
   showToast('UPI ID copied!');
   setTimeout(() => {
-    copyIcon.style.display    = '';
-    copiedIcon.style.display  = 'none';
-    copyBtn.style.color       = '';
-    copyBtn.style.background  = '';
-    copyBtn.style.borderColor = '';
+    if (modalCopyIcon) modalCopyIcon.style.display    = '';
+    if (modalCopiedIcon) modalCopiedIcon.style.display  = 'none';
+    modalCopyBtn.style.color       = '';
+    modalCopyBtn.style.background  = '';
+    modalCopyBtn.style.borderColor = '';
   }, 2500);
 });
 
