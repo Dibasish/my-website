@@ -150,24 +150,11 @@ amountInput?.addEventListener('input', () => {
    UPI MODAL LOGIC
 ═══════════════════════════════ */
 let currentPaymentContext = null; // 'deposit' or 'final'
-let depositUtr = '';
-let finalUtr = '';
 
 const upiModal = $('upi-modal');
 const modalAmountDisplay = $('modal-amount-display');
 const modalLaunchBtn = $('modal-launch-btn');
-const modalUtrInput = $('modal-utr-input');
 const modalPaymentDoneBtn = $('modal-payment-done-btn');
-
-modalUtrInput?.addEventListener('input', (e) => {
-  const val = e.target.value.replace(/\D/g, '');
-  e.target.value = val;
-  if (val.length >= 12 && modalPaymentDoneBtn) {
-    modalPaymentDoneBtn.disabled = false;
-  } else if (modalPaymentDoneBtn) {
-    modalPaymentDoneBtn.disabled = true;
-  }
-});
 
 function openUpiModal(type, amount) {
   if (amount <= 0) {
@@ -177,9 +164,6 @@ function openUpiModal(type, amount) {
   currentPaymentContext = type;
   if (modalAmountDisplay) modalAmountDisplay.textContent = '₹' + amount.toLocaleString('en-IN');
   if (modalLaunchBtn) modalLaunchBtn.href = buildUpiUrl(amount);
-  
-  if (modalUtrInput) modalUtrInput.value = '';
-  if (modalPaymentDoneBtn) modalPaymentDoneBtn.disabled = true;
 
   if (upiModal) upiModal.classList.add('active');
 }
@@ -200,16 +184,13 @@ $('open-final-upi-modal-btn')?.addEventListener('click', (e) => {
 
 modalPaymentDoneBtn?.addEventListener('click', () => {
   if (upiModal) upiModal.classList.remove('active');
-  const enteredUtr = modalUtrInput?.value.trim() || '';
   
   if (currentPaymentContext === 'deposit') {
-    depositUtr = enteredUtr;
     paymentConfirmed = true;
     $('payment-confirmed-badge')?.classList.add('visible');
     submitBtn?.classList.add('payment-ready');
     showToast('✅ Payment confirmed! Fill the form and submit.');
   } else if (currentPaymentContext === 'final') {
-    finalUtr = enteredUtr;
     $('final-confirmed-badge')?.classList.add('visible');
     const finalBtn = $('final-submit-btn');
     if (finalBtn) {
@@ -232,7 +213,6 @@ $('final-submit-btn')?.addEventListener('click', async () => {
     client_name:    $('client-name')?.value?.trim() || 'Client',
     client_email:   $('client-email')?.value?.trim() || '',
     balance_amount: '₹' + (currentBalance || 0).toLocaleString('en-IN'),
-    final_utr:      finalUtr,
     artist:         CONFIG.artistName,
     type:           'final_payment',
     submitted_at:   new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
@@ -367,7 +347,6 @@ form?.addEventListener('submit', async (e) => {
     name, phone, email,
     project_amount:  amount,
     deposit_amount:  deposit,
-    deposit_utr:     depositUtr,
     upi_id:          CONFIG.upiId,
     artist:          CONFIG.artistName,
     submitted_at:    new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
