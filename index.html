@@ -93,41 +93,11 @@
             </div>
 
             <div class="field-group">
-              <label class="field-label" for="project-amount">Agreed Total Project Amount (₹) <span class="required-star">*</span></label>
+              <label class="field-label" for="project-amount">Enter 30% Deposit Amount (₹) <span class="required-star">*</span></label>
               <div class="input-wrapper">
                 <span class="input-icon rupee-icon" aria-hidden="true">₹</span>
-                <input type="number" id="project-amount" name="project_amount" class="field-input" placeholder="e.g. 5000" min="1" required />
+                <input type="number" id="project-amount" name="project_amount" class="field-input" placeholder="e.g. 1500" min="1" required />
               </div>
-
-              <!-- Big Deposit Breakdown Card -->
-              <div class="deposit-card" id="deposit-display" aria-live="polite">
-                <div class="deposit-card-header">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                  Payment Breakdown
-                </div>
-                <div class="deposit-card-body">
-                  <div class="deposit-row">
-                    <span class="deposit-row-label">Total Project Amount</span>
-                    <span class="deposit-row-value" id="total-amount-display">₹ —</span>
-                  </div>
-                  <div class="deposit-divider"></div>
-                  <div class="deposit-row deposit-row-highlight">
-                    <div>
-                      <span class="deposit-row-label">Pay Now (30% Deposit)</span>
-                      <span class="deposit-row-sublabel">Non-refundable · Required to start</span>
-                    </div>
-                    <span class="deposit-row-big" id="deposit-amount">₹ —</span>
-                  </div>
-                  <div class="deposit-row deposit-row-balance">
-                    <span class="deposit-row-label">Balance After Demo Approval</span>
-                    <span class="deposit-row-value" id="balance-amount-display">₹ —</span>
-                  </div>
-                </div>
-                <div class="deposit-card-note">
-                  💡 Pay only the deposit now via UPI below. Balance is due after you approve the final track.
-                </div>
-              </div>
-
             </div>
 
             <!-- Field 4: Terms Checkbox -->
@@ -199,14 +169,12 @@
             <p>I'll send you a private <strong>watermarked demo</strong> link on WhatsApp &amp; email. Pay the remaining balance only after you've listened and approved the track.</p>
           </div>
 
-          <!-- Remaining balance display -->
-          <div class="final-balance-card">
-            <div class="final-balance-row">
-              <div>
-                <span class="final-balance-label">Remaining Balance (70%)</span>
-                <span class="final-balance-sublabel">Due after demo approval</span>
-              </div>
-              <span class="final-balance-big" id="final-balance-amount">₹ —</span>
+          <!-- Remaining balance input -->
+          <div class="field-group" style="margin-bottom: var(--sp-4);">
+            <label class="field-label" for="final-project-amount">Enter Remaining Balance Amount (₹) <span class="required-star">*</span></label>
+            <div class="input-wrapper">
+              <span class="input-icon rupee-icon" aria-hidden="true">₹</span>
+              <input type="number" id="final-project-amount" class="field-input" placeholder="e.g. 3500" min="1" required />
             </div>
           </div>
 
