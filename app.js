@@ -297,7 +297,7 @@ function validateField(input) {
   if (input.type === 'email' && val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { ok = false; }
   if (input.type === 'tel'   && val && val.replace(/\D/g,'').length < 8)         { ok = false; }
   if (input.id === 'utr-number' && val && val.replace(/\D/g,'').length < 12)     { ok = false; }
-  if (input.type === 'number' && val && parseFloat(val) < 500)                   { ok = false; }
+  if (input.type === 'number' && val && parseFloat(val) < 1)                     { ok = false; }
   input.classList.toggle('error',   !ok && val !== '');
   input.classList.toggle('success',  ok && val !== '');
   return ok || val === '';
